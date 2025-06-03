@@ -33,6 +33,8 @@ public:
     void rotateAroundX(const double& angle);
     void rotateAroundZ(const double& angle);
 
+    void zoom(double q);
+
     [[nodiscard]] Eigen::Matrix4d getCameraMatrix() const;
 
     Camera(Point3D pos, Point3D view, Point3D up, double zf, double zb, double sw, double sh);
@@ -63,6 +65,14 @@ private:
     Eigen::Matrix4d projectionMatrix; // matrix of projection to screen
     Eigen::Matrix4d cameraMatrix; // production of these matrices
 };
+
+inline void Camera::zoom(double q)
+{
+    if (q <= 0) return;
+
+    zf *= q;
+    updateProjectionMatrix();
+}
 
 
 #endif //CAMERA_H

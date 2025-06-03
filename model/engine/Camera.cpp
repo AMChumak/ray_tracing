@@ -47,6 +47,7 @@ double Camera::getZf() const
 void Camera::setZf(const double zf)
 {
     this->zf = zf;
+    updateProjectionMatrix();
 }
 
 double Camera::getZb() const
@@ -57,6 +58,7 @@ double Camera::getZb() const
 void Camera::setZb(const double zb)
 {
     this->zb = zb;
+    updateProjectionMatrix();
 }
 
 double Camera::getSw() const
@@ -171,13 +173,13 @@ void Camera::updateRotationMatrix()
     rotationMatrix = Eigen::Matrix4d::Identity();
 
     // connect z axes
-    Eigen::Vector3d spaceZ {0,0,1};
-    Eigen::Vector3d cameraZ {upVector.x(), upVector.y(), upVector.z()};
+    Eigen::Vector3d spaceZ{0, 0, 1};
+    Eigen::Vector3d cameraZ{upVector.x(), upVector.y(), upVector.z()};
     addRotation(rotationMatrix, cameraZ, spaceZ);
 
     // connect x axes
-    Eigen::Vector3d spaceX {0,0,1};
-    Eigen::Vector3d cameraX {upVector.x(), upVector.y(), upVector.z()};
+    Eigen::Vector3d spaceX{0, 0, 1};
+    Eigen::Vector3d cameraX{upVector.x(), upVector.y(), upVector.z()};
     cameraX = rotationMatrix * cameraX;
     addRotation(rotationMatrix, cameraX, spaceX);
 
@@ -186,6 +188,13 @@ void Camera::updateRotationMatrix()
 
 void Camera::updateProjectionMatrix()
 {
+    projectionMatrix = {
+        {2 / sw * zf, 0, 0, 0},
+        {0, 2 / sh * zf, 0, 0},
+        {0, 0, zb / (zb - zf), -zf * zb / (zb - zf)},
+        {0, 0, 1, 0}
+    };
+    updateCameraMatrix();
 }
 
 void Camera::updateCameraMatrix()
