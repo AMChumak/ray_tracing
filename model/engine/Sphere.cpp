@@ -57,6 +57,11 @@ Ray Sphere::getNormalInReflection(const Ray& incident)
 
     double q = (k - std::sqrt(D1)) / a;
 
+    if (q < 0)
+    {
+        return Ray{};
+    }
+
     Eigen::Vector3d intersectionV = incident.origin + q * incident.direction;
     Eigen::Vector3d normal = intersectionV - center;
     normal.normalize();

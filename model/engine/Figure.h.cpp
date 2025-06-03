@@ -87,6 +87,11 @@ Ray getPolygonNormalInReflection(const Polygon &polygon, const Ray& incident, Ei
     Eigen::Vector3d tmp = vectorA - originV;
     double q = tmp.dot(normal) / incidentV.dot(normal);
 
+    if (q < 0)
+    {
+        return Ray{};
+    }
+
     Eigen::Vector3d intersectionV = q * incidentV + originV;
     //check that point in triangle
 
