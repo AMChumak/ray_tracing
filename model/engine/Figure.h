@@ -17,6 +17,8 @@ struct Point3D
     Point3D& operator*(double q) const;
     Point3D& operator/=(double q);
     Point3D& operator/(double q) const;
+    bool operator!=(const Point3D& point3D) const;
+    bool operator==(const Point3D& point3D) const;
 };
 
 struct Ray
@@ -31,11 +33,15 @@ struct Polygon
     Point3D points[3];
 };
 
+Ray getPolygonNormalInReflection(const Polygon &polygon, Ray& incident, Eigen::Vector3d& normal, Eigen::Vector3d& AB, Eigen::Vector3d& AC,
+                          Eigen::Vector3d& BC, double radius = 1000000000.0);
+
 class Figure
 {
 public:
     virtual ~Figure() = default;
     virtual std::vector<Polygon> polygons() = 0;
+    virtual Ray getNormalInReflection(const Ray& incident) = 0;
 };
 
 

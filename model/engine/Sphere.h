@@ -4,6 +4,9 @@
 
 #ifndef SPHERE_H
 #define SPHERE_H
+#include <Eigen/src/Core/Matrix.h>
+#include <Eigen/src/Core/functors/TernaryFunctors.h>
+
 #include "Figure.h"
 
 
@@ -18,8 +21,11 @@ private:
     [[nodiscard]] Point3D getArcCenter(Point3D a, Point3D b) const;
     void bisectPolygon(std::vector<Polygon>& dest, int startIndex, Polygon& source) const;
 
+public:
+    Ray getNormalInReflection(const Ray& incident) override;
+
 private:
-    Point3D center;
+    Eigen::Vector3d center;
     double radius;
     int accuracy = 1;
 };

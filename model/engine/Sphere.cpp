@@ -1,11 +1,13 @@
 #include "Sphere.h"
 #include <cmath>
 #include <valarray>
+#include <Eigen/src/Core/Matrix.h>
 
 #define M_SQRT3 1.732050807568877
 
-Sphere::Sphere(const Point3D& center, const double radius): center(center), radius(radius)
+Sphere::Sphere(const Point3D& center, const double radius): radius(radius)
 {
+    this->center = {center.x, center.y, center.z};
 }
 
 
@@ -14,7 +16,7 @@ Point3D Sphere::getArcCenter(Point3D a, Point3D b) const
     a -= center;
     b -= center;
     Point3D p = (b + a);
-    const double normP = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+    const double normP = sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
     return (p / normP * radius) + center;
 }
 
@@ -30,6 +32,38 @@ void Sphere::bisectPolygon(std::vector<Polygon>& dest, int startIndex, Polygon& 
     dest[startIndex + 1] = Polygon{newPoints[0], source.points[1], newPoints[1]};
     dest[startIndex + 2] = Polygon{newPoints[2], newPoints[1], source.points[2]};
     dest[startIndex + 3] = Polygon{newPoints[1], newPoints[2], newPoints[0]};
+}
+
+Ray Sphere::getNormalInReflection(const Ray& incident)
+{
+    //find q
+
+    Eigen::Vector3d incidentV{
+        incident.direction.x, incident.direction.y,
+        incident.direction.z
+    };
+    Eigen::Vector3d originV{incident.origin.x, incident.origin.y, incident.origin.z};
+
+    Eigen::Vector3d diffOC = originV - center;
+
+    // compute square equality
+    //take nearest root => (k-sqrt(D1)) / a
+    double k = incidentV.dot(diffOC);
+    double a = incidentV.dot(incidentV);
+    double c = diffOC.dot(diffOC) - radius * radius;
+    double D1 = k * k - a * c;
+    if (D1 <= 0)
+        return Ray{};
+
+    double q = (k - std::sqrt(D1)) / a;
+
+    Eigen::Vector3d intersectionV = incident.origin + q * incident.direction;
+    Eigen::Vector3d normal = intersectionV - center;
+    normal.normalize();
+    return Ray{
+        {intersectionV.x(), intersectionV.y(), intersectionV.z()},
+        {normal.x(), normal.y(), normal.z()}
+    };
 }
 
 
@@ -103,12 +137,12 @@ std::vector<Polygon> Sphere::polygons()
 
     for (int i = 1; i <= accuracy; i++)
     {
-        auto &cur = polygons[i % 2];
-        auto &inv = polygons[(i + 1) % 2];
+        auto& cur = polygons[i % 2];
+        auto& inv = polygons[(i + 1) % 2];
 
         //bisection of sphere triangle
         int j = 0;
-        for (auto &polygon : inv)
+        for (auto& polygon : inv)
         {
             bisectPolygon(cur, j, polygon);
             j += 4;

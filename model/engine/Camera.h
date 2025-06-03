@@ -33,9 +33,12 @@ public:
     void rotateAroundX(const double& angle);
     void rotateAroundZ(const double& angle);
 
+    [[nodiscard]] Ray emitRay(double x, double y) const;
+
     void zoom(double q);
 
     [[nodiscard]] Eigen::Matrix4d getCameraMatrix() const;
+    [[nodiscard]] Eigen::Matrix4d getCameraMatrixInverse() const;
 
     Camera(Point3D pos, Point3D view, Point3D up, double zf, double zb, double sw, double sh);
 
@@ -61,9 +64,12 @@ private:
     double sh;
 
     Eigen::Matrix4d systemMatrix; //matrix to transition between World system and camera system
+    Eigen::Matrix4d systemMatrixInverse;
     Eigen::Matrix4d rotationMatrix; //matrix for rotation
+    Eigen::Matrix4d rotationMatrixInverse;
     Eigen::Matrix4d projectionMatrix; // matrix of projection to screen
     Eigen::Matrix4d cameraMatrix; // production of these matrices
+    Eigen::Matrix4d cameraMatrixInverse;
 };
 
 inline void Camera::zoom(double q)

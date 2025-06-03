@@ -130,6 +130,13 @@ void Camera::updateSystemMatrix()
         {0, 0, 1, -position.z},
         {0, 0, 0, 1}
     };
+
+    systemMatrixInverse = {
+        {1, 0, 0, position.x},
+        {0, 1, 0, position.y},
+        {0, 0, 1, position.z},
+        {0, 0, 0, 1}
+    };
     updateCameraMatrix();
 }
 
@@ -171,17 +178,20 @@ void Camera::addRotation(Eigen::Matrix4d& totalRotation, const Eigen::Vector3d& 
 void Camera::updateRotationMatrix()
 {
     rotationMatrix = Eigen::Matrix4d::Identity();
+    rotationMatrixInverse = Eigen::Matrix4d::Identity();
 
     // connect z axes
     Eigen::Vector3d spaceZ{0, 0, 1};
     Eigen::Vector3d cameraZ{upVector.x(), upVector.y(), upVector.z()};
     addRotation(rotationMatrix, cameraZ, spaceZ);
+    addRotation(rotationMatrixInverse, spaceZ, cameraZ);
 
     // connect x axes
     Eigen::Vector3d spaceX{0, 0, 1};
     Eigen::Vector3d cameraX{upVector.x(), upVector.y(), upVector.z()};
     cameraX = rotationMatrix * cameraX;
     addRotation(rotationMatrix, cameraX, spaceX);
+    addRotation(rotationMatrixInverse, spaceX, cameraX);
 
     updateCameraMatrix();
 }
@@ -199,12 +209,18 @@ void Camera::updateProjectionMatrix()
 
 void Camera::updateCameraMatrix()
 {
-    cameraMatrix = projectionMatrix * rotationMatrix;
+    cameraMatrix = projectionMatrix * rotationMatrix * systemMatrix;
+    cameraMatrixInverse = systemMatrixInverse * rotationMatrixInverse;
 }
 
 Eigen::Matrix4d Camera::getCameraMatrix() const
 {
     return cameraMatrix;
+}
+
+Eigen::Matrix4d Camera::getCameraMatrixInverse() const
+{
+    return cameraMatrixInverse;
 }
 
 void Camera::move(const Point3D& step)
@@ -253,4 +269,13 @@ void Camera::rotateAroundZ(const double& angle)
     Eigen::Vector3d newUp = rotateAround(zAxis, prevUp, angle);
     upVector = {newUp.x(), newUp.y(), newUp.z()};
     updateAxes();
+}
+
+Ray Camera::emitRay(double x, double y) const
+{
+    Eigen::Vector4d ray{x,y, zf};
+    ray = cameraMatrix * ray;
+    ray /= ray.w();
+    const auto result = Ray{viewPoint, {ray.x(), ray.y(), ray.z()}};
+    return result;
 }
