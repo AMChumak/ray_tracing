@@ -7,9 +7,11 @@
 #include <fstream>
 #include <sstream>
 
+#include "Figure.h"
+
 ConfigKeeper::ConfigKeeper()
 {
-    state = {168, 217, 255, 1, 3, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1, 8, 100, 1, 1080.0 / 1920.0};
+    state = {168, 217, 255, 1, 3,0, Point3D{0, 0, 0}, Point3D{0, 10, 0}, Point3D{0, 0, 1}, 8, 100, 1, 1080.0 / 1920.0};
 }
 
 std::string ConfigKeeper::readConfig(const std::string& configFile)
@@ -56,7 +58,7 @@ std::string ConfigKeeper::readConfig(const std::string& configFile)
             {
             case 0: // find br bg bb
                 {
-                    valuesStream >> state.br >> state.bg >> state.bb;
+                    valuesStream >> (int &)state.br >> (int &)state.bg >> (int &)state.bb;
                     break;
                 }
             case 1: // find gamma

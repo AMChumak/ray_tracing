@@ -57,7 +57,7 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
         // common optic props
         FigureOpticProps optics{};
 
-
+        std::string figureTypeStr;
         while (!file.eof())
         {
             std::string raw;
@@ -121,20 +121,19 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                     if (figureType == -1)
                     {
                         figureStep = 0;
+                        valuesStream >> figureTypeStr;
+                        if (figureTypeStr == "SPHERE")
+                            figureType = 1;
+                        else if (figureTypeStr == "BOX")
+                            figureType = 2;
+                        else if (figureTypeStr == "TRIANGLE")
+                            figureType = 3;
+                        else if (figureTypeStr == "QUADRANGLE")
+                            figureType = 4;
+                        else
+                            throw std::runtime_error("Invalid figure type");
                     }
 
-                    std::string figureTypeStr;
-                    valuesStream >> figureTypeStr;
-                    if (figureTypeStr == "SPHERE")
-                        figureType = 1;
-                    else if (figureTypeStr == "BOX")
-                        figureType = 2;
-                    else if (figureTypeStr == "TRIANGLE")
-                        figureType = 3;
-                    else if (figureTypeStr == "QUADRANGLE")
-                        figureType = 4;
-                    else
-                        throw std::runtime_error("Invalid figure type");
 
                     switch (figureType)
                     {
@@ -156,7 +155,7 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                     optics.ksb >> optics.power;
 
                                 // add figure
-                                scene.figures.push_back(Sphere(center, radius));
+                                scene.figures.push_back(new Sphere(center, radius));
                                 scene.optics.push_back(optics);
                                 step++;
                                 figureType = -1;
@@ -181,7 +180,7 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                     optics.ksb >> optics.power;
 
                                 // add figure
-                                scene.figures.push_back(Box(minP, maxP));
+                                scene.figures.push_back(new Box(minP, maxP));
                                 scene.optics.push_back(optics);
                                 step++;
                                 figureType = -1;
@@ -211,7 +210,7 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                     optics.ksb >> optics.power;
 
                                 // add figure
-                                scene.figures.push_back(Triangle(Polygon{ta,tb,tc}));
+                                scene.figures.push_back(new Triangle(Polygon{ta,tb,tc}));
                                 scene.optics.push_back(optics);
                                 step++;
                                 figureType = -1;
@@ -246,7 +245,7 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                     optics.ksb >> optics.power;
 
                                 // add figure
-                                scene.figures.push_back(Triangle(Polygon{ta,tb,tc}));
+                                scene.figures.push_back(new Triangle(Polygon{ta,tb,tc}));
                                 scene.optics.push_back(optics);
                                 step++;
                                 figureType = -1;

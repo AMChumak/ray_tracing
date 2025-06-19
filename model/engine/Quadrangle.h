@@ -4,7 +4,7 @@
 
 #ifndef QUADRANGLE_H
 #define QUADRANGLE_H
-#include <Eigen/src/Core/Matrix.h>
+#include <eigen3/Eigen/Dense>
 
 #include "Figure.h"
 
@@ -14,7 +14,7 @@ class Quadrangle : public Figure
 public:
     Quadrangle(const Point3D& p0, const Point3D& p1, const Point3D& p2, const Point3D& p3);
     std::vector<Polygon> polygons() override;
-    Ray getNormalInReflection(const Ray& incident) override;
+    Ray getNormalInReflection(Ray& incident) override;
 
 private:
     Point3D points[4];

@@ -4,6 +4,7 @@
 #include "Figure.h"
 
 
+
 struct LightSource
 {
     Point3D position;
@@ -34,5 +35,11 @@ struct FigureOpticProps
     double power;
 };
 
+struct SceneDescription
+{
+    SceneProps props;
+    std::vector<Figure*> figures;
+    std::vector<FigureOpticProps> optics;
+};
 
 #endif //OPTICS_H

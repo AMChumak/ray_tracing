@@ -1,5 +1,5 @@
 
-#include <Eigen/src/Core/Matrix.h>
+#include <eigen3/Eigen/Dense>
 
 #include "Figure.h"
 
@@ -66,7 +66,7 @@ bool Point3D::operator==(const Point3D& point3D) const
     return x == point3D.x && y == point3D.y && z == point3D.z;
 }
 
-Ray getPolygonNormalInReflection(const Polygon &polygon, const Ray& incident, Eigen::Vector3d& normal, Eigen::Vector3d& vecAB, Eigen::Vector3d& vecAC,
+Ray getPolygonNormalInReflection(const Polygon &polygon, Ray& incident, Eigen::Vector3d& normal, Eigen::Vector3d& vecAB, Eigen::Vector3d& vecAC,
                                  Eigen::Vector3d& vecBC, double radius)
 {
     //find quotient needed to set point on plane

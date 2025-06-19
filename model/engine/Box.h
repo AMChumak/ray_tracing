@@ -4,7 +4,7 @@
 
 #ifndef BOX_H
 #define BOX_H
-#include <Eigen/src/Core/Matrix.h>
+#include <eigen3/Eigen/Dense>
 
 #include "Figure.h"
 
@@ -14,7 +14,7 @@ class Box : public Figure
 public:
     Box(const Point3D& min, const Point3D& max);
     std::vector<Polygon> polygons() override;
-    Ray getNormalInReflection(const Ray& incident) override;
+    Ray getNormalInReflection(Ray& incident) override;
 
 private:
     std::vector<Polygon> triangles;

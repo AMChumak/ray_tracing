@@ -5,8 +5,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <Eigen/src/Core/Matrix.h>
-#include <Eigen/src/Core/functors/TernaryFunctors.h>
+#include <eigen3/Eigen/Dense>
 
 #include "Figure.h"
 
@@ -52,10 +51,11 @@ private:
     void updateCameraMatrix();
 
 private:
-    Point3D position;
-    Point3D viewPoint;
-    Point3D upVector;
+    Point3D position{};
+    Point3D viewPoint{};
+    Point3D upVector{};
     Point3D xVector{};
+    Point3D zVector{};
 
     double zf;
     double zb;

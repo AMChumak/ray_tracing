@@ -5,8 +5,6 @@
 #include "Box.h"
 #include "Figure.h"
 
-#include <oneapi/tbb/task_arena.h>
-
 Box::Box(const Point3D& min, const Point3D& max): minP(min), maxP(max)
 {
     triangles.resize(12);
@@ -52,7 +50,7 @@ std::vector<Polygon> Box::polygons()
     return triangles;
 }
 
-Ray Box::getNormalInReflection(const Ray& incident)
+Ray Box::getNormalInReflection(Ray& incident)
 {
     Ray normal{};
     for (int i = 0; i < 12; i++)

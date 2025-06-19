@@ -9,6 +9,7 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Gui)
 
 add_subdirectory(model/config)
 add_subdirectory(model/engine)
+add_subdirectory(view)
 
 
 qt_standard_project_setup()
@@ -23,6 +24,7 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
         config_lib
         engine_lib
+        ui_lib
         PUBLIC
         Qt6::Core
         Qt6::Widgets

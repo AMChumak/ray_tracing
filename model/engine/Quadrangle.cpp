@@ -89,7 +89,7 @@ std::vector<Polygon> Quadrangle::polygons()
     return polygons;
 }
 
-Ray Quadrangle::getNormalInReflection(const Ray& incident)
+Ray Quadrangle::getNormalInReflection(Ray& incident)
 {
     Polygon first{points[0], points[1], points[3]};
     Polygon second{points[1], points[2], points[3]};

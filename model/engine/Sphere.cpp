@@ -1,7 +1,7 @@
 #include "Sphere.h"
 #include <cmath>
 #include <valarray>
-#include <Eigen/src/Core/Matrix.h>
+#include <eigen3/Eigen/Dense>
 
 #define M_SQRT3 1.732050807568877
 
@@ -13,11 +13,11 @@ Sphere::Sphere(const Point3D& center, const double radius): radius(radius)
 
 Point3D Sphere::getArcCenter(Point3D a, Point3D b) const
 {
-    a -= center;
-    b -= center;
+    a -= Point3D{center.x(), center.y(), center.z()};
+    b -= Point3D{center.x(), center.y(), center.z()};
     Point3D p = (b + a);
     const double normP = sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
-    return (p / normP * radius) + center;
+    return (p / normP * radius) + Point3D{center.x(), center.y(), center.z()};
 }
 
 void Sphere::bisectPolygon(std::vector<Polygon>& dest, int startIndex, Polygon& source) const
@@ -34,7 +34,7 @@ void Sphere::bisectPolygon(std::vector<Polygon>& dest, int startIndex, Polygon& 
     dest[startIndex + 3] = Polygon{newPoints[1], newPoints[2], newPoints[0]};
 }
 
-Ray Sphere::getNormalInReflection(const Ray& incident)
+Ray Sphere::getNormalInReflection(Ray& incident)
 {
     //find q
 
@@ -44,7 +44,7 @@ Ray Sphere::getNormalInReflection(const Ray& incident)
     };
     Eigen::Vector3d originV{incident.origin.x, incident.origin.y, incident.origin.z};
 
-    Eigen::Vector3d diffOC = originV - center;
+    const Eigen::Vector3d diffOC{originV.x() - center.x(), originV.y() - center.y(), originV.z() - center.z()};
 
     // compute square equality
     //take nearest root => (k-sqrt(D1)) / a
@@ -61,9 +61,9 @@ Ray Sphere::getNormalInReflection(const Ray& incident)
     {
         return Ray{};
     }
-
-    Eigen::Vector3d intersectionV = incident.origin + q * incident.direction;
-    Eigen::Vector3d normal = intersectionV - center;
+    Point3D intersectionP = incident.origin + incident.direction * q;
+    Eigen::Vector3d intersectionV{intersectionP.x, intersectionP.y, intersectionP.z};
+    Eigen::Vector3d normal{intersectionV.x() - center.x(),intersectionV.y() - center.y(),intersectionV.z() - center.z()};
     normal.normalize();
     return Ray{
         {intersectionV.x(), intersectionV.y(), intersectionV.z()},
@@ -76,38 +76,38 @@ std::vector<Polygon> Sphere::polygons()
 {
     //step 1: create 12-vertex graph (20 triangles)
     Point3D grid[12];
-    grid[0] = {center.x, center.y, center.z - radius};
+    grid[0] = {center.x(), center.y(), center.z() - radius};
 
     double smallR = M_SQRT3 * radius / 2;
-    grid[1] = {center.x - smallR, center.y, center.z - radius / 2};
+    grid[1] = {center.x() - smallR, center.y(), center.z() - radius / 2};
     grid[2] = {
-        center.x - std::cos(2 * M_PI / 5) * smallR, center.y - std::sin(2 * M_PI / 5) * smallR, center.z - radius / 2
+        center.x() - std::cos(2 * M_PI / 5) * smallR, center.y() - std::sin(2 * M_PI / 5) * smallR, center.z() - radius / 2
     };
     grid[3] = {
-        center.x - std::cos(4 * M_PI / 5) * smallR, center.y - std::sin(4 * M_PI / 5) * smallR, center.z - radius / 2
+        center.x() - std::cos(4 * M_PI / 5) * smallR, center.y() - std::sin(4 * M_PI / 5) * smallR, center.z() - radius / 2
     };
     grid[4] = {
-        center.x - std::cos(6 * M_PI / 5) * smallR, center.y - std::sin(6 * M_PI / 5) * smallR, center.z - radius / 2
+        center.x() - std::cos(6 * M_PI / 5) * smallR, center.y() - std::sin(6 * M_PI / 5) * smallR, center.z() - radius / 2
     };
     grid[5] = {
-        center.x - std::cos(8 * M_PI / 5) * smallR, center.y - std::sin(8 * M_PI / 5) * smallR, center.z - radius / 2
+        center.x() - std::cos(8 * M_PI / 5) * smallR, center.y() - std::sin(8 * M_PI / 5) * smallR, center.z() - radius / 2
     };
 
-    grid[6] = {center.x + smallR, center.y, center.z + radius / 2};
+    grid[6] = {center.x() + smallR, center.y(), center.z() + radius / 2};
     grid[7] = {
-        center.x + std::cos(2 * M_PI / 5) * smallR, center.y + std::sin(2 * M_PI / 5) * smallR, center.z + radius / 2
+        center.x() + std::cos(2 * M_PI / 5) * smallR, center.y() + std::sin(2 * M_PI / 5) * smallR, center.z() + radius / 2
     };
     grid[8] = {
-        center.x + std::cos(4 * M_PI / 5) * smallR, center.y + std::sin(4 * M_PI / 5) * smallR, center.z + radius / 2
+        center.x() + std::cos(4 * M_PI / 5) * smallR, center.y() + std::sin(4 * M_PI / 5) * smallR, center.z() + radius / 2
     };
     grid[9] = {
-        center.x + std::cos(6 * M_PI / 5) * smallR, center.y + std::sin(6 * M_PI / 5) * smallR, center.z + radius / 2
+        center.x() + std::cos(6 * M_PI / 5) * smallR, center.y() + std::sin(6 * M_PI / 5) * smallR, center.z() + radius / 2
     };
     grid[10] = {
-        center.x + std::cos(8 * M_PI / 5) * smallR, center.y + std::sin(8 * M_PI / 5) * smallR, center.z + radius / 2
+        center.x() + std::cos(8 * M_PI / 5) * smallR, center.y() + std::sin(8 * M_PI / 5) * smallR, center.z() + radius / 2
     };
 
-    grid[11] = {center.x, center.y, center.z + radius};
+    grid[11] = {center.x(), center.y(), center.z() + radius};
 
 
     const int maxsize = 20 << (accuracy * 2);
@@ -146,12 +146,13 @@ std::vector<Polygon> Sphere::polygons()
         auto& inv = polygons[(i + 1) % 2];
 
         //bisection of sphere triangle
-        int j = 0;
-        for (auto& polygon : inv)
+        int len = 20 << (2 * (i - 1));
+        for (int j = 0; j < len; j++)
         {
-            bisectPolygon(cur, j, polygon);
-            j += 4;
+            auto polygon = inv[j];
+            bisectPolygon(cur, j << 2, polygon);
         }
     }
+
     return polygons[accuracy % 2];
 }

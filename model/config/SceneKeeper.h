@@ -7,15 +7,9 @@
 
 #include <string>
 
-#include "Figure.h"
 #include "optics.h"
 
-struct SceneDescription
-{
-    SceneProps props;
-    std::vector<Figure> figures;
-    std::vector<FigureOpticProps> optics;
-};
+
 
 class SceneKeeper
 {

@@ -2,6 +2,7 @@
 #define FIGURE_H
 
 #include <vector>
+#include <eigen3/Eigen/Dense>
 
 struct Point3D
 {
@@ -41,7 +42,7 @@ class Figure
 public:
     virtual ~Figure() = default;
     virtual std::vector<Polygon> polygons() = 0;
-    virtual Ray getNormalInReflection(const Ray& incident) = 0;
+    virtual Ray getNormalInReflection(Ray& incident) = 0;
 };
 
 

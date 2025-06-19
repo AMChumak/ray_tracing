@@ -1,6 +1,6 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
-#include <Eigen/src/Core/Matrix.h>
+#include <eigen3/Eigen/Dense>
 
 #include "Figure.h"
 
@@ -10,7 +10,7 @@ class Triangle : public Figure
     public:
     explicit Triangle(const Polygon& polygon);
     std::vector<Polygon> polygons() override;
-    Ray getNormalInReflection(const Ray& incident) override;
+    Ray getNormalInReflection(Ray& incident) override;
 
 private:
     Polygon polygon;

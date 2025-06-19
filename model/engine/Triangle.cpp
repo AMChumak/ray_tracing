@@ -1,7 +1,6 @@
 #include "Triangle.h"
 
-#include <Eigen/src/Core/Matrix.h>
-#include <Eigen/src/Core/functors/TernaryFunctors.h>
+#include <eigen3/Eigen/Dense>
 
 Triangle::Triangle(const Polygon& polygon): polygon(polygon)
 {
@@ -45,7 +44,7 @@ std::vector<Polygon> Triangle::polygons()
     return std::vector{polygon};
 }
 
-Ray Triangle::getNormalInReflection(const Ray& incident)
+Ray Triangle::getNormalInReflection(Ray& incident)
 {
     return getPolygonNormalInReflection(polygon, incident, normal, vecAB, vecAC, vecBC, radius);
 }
