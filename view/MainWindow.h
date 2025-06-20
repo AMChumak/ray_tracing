@@ -16,13 +16,13 @@ class UI_LIB_EXPORT MainWindow final : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent, Camera *camera_, SceneDescription *scene_, ConfigState *config_);
+    MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene_, ConfigState* config_);
 
 
 private:
-    QVBoxLayout *m_layout;
-    QWidget *m_window;
-    RenderArea *m_renderArea;
+    QVBoxLayout* m_layout;
+    QWidget* m_window;
+    RenderArea* m_renderArea;
 };
 
 

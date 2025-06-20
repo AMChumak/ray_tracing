@@ -4,6 +4,7 @@
 
 #include "Camera.h"
 
+#include <iostream>
 #include <eigen3/Eigen/Dense>
 
 using Eigen::Vector3d;
@@ -83,6 +84,19 @@ void Camera::setSh(const double sh)
     this->sh = sh;
 }
 
+
+void Camera::move(const Point3D& step)
+{
+    Point3D pStep{};
+    pStep = zVector * step.y;
+    Point3D sStep{xVector * step.x};
+    pStep += sStep;
+    position += pStep;
+    viewPoint += pStep;
+    updateSystemMatrix();
+}
+
+
 Camera::Camera(Point3D pos, Point3D view, Point3D up, double zf, double zb, double sw, double sh): position{pos},
     viewPoint{view}, upVector{up}, zf{zf}, zb{zb}, sw{sw}, sh{sh}
 {
@@ -113,12 +127,13 @@ Eigen::Vector3d Camera::rotateAround(Eigen::Vector3d axis, Eigen::Vector3d vecto
     double sinA = std::sin(angle / 180.0 * M_PI);
 
     double cosr = 1 - cosA;
-    double x = upVector.x;
-    double y = upVector.y;
-    double z = upVector.z;
+    double x = axis.x();
+    double y = axis.y();
+    double z = axis.z();
 
     const Eigen::Matrix3d rotation{
-        {x * x * cosr + cosA, x * y * cosr - z * sinA, x * z * cosr + y * sinA
+        {
+            x * x * cosr + cosA, x * y * cosr - z * sinA, x * z * cosr + y * sinA
         },
         {x * y * cosr + z * sinA, y * y * cosr + cosA, y * z * cosr - x * sinA},
         {x * z * cosr - y * sinA, y * z * cosr + x * sinA, z * z * cosr + cosA}
@@ -200,7 +215,7 @@ void Camera::updateRotationMatrix()
 
     // connect x axes
     Eigen::Vector3d spaceX{1, 0, 0};
-    Eigen::Vector4d cameraX{xVector.x, xVector.y, xVector.z,1};
+    Eigen::Vector4d cameraX{xVector.x, xVector.y, xVector.z, 1};
     cameraX = rotationMatrix * cameraX;
     Vector3d preparedCameraX{cameraX.x(), cameraX.y(), cameraX.z()};
     addRotation(rotationMatrix, preparedCameraX, spaceX);
@@ -236,12 +251,6 @@ Eigen::Matrix4d Camera::getCameraMatrixInverse() const
     return cameraMatrixInverse;
 }
 
-void Camera::move(const Point3D& step)
-{
-    position += step;
-    viewPoint += step;
-}
-
 
 void Camera::rotateAroundUp(const double& angle)
 {
@@ -263,6 +272,9 @@ void Camera::rotateAroundX(const double& angle)
     else if (angle < -80.0)
     {
         preparedAngle = -80.0;
+    } else
+    {
+        preparedAngle = angle;
     }
 
     Point3D preparedZ = viewPoint - position;
@@ -284,9 +296,22 @@ void Camera::rotateAroundZ(const double& angle)
     updateAxes();
 }
 
+bool Camera::isVisible(const Point3D& point) const
+{
+    Vector3d viewVector{viewPoint.x - position.x, viewPoint.y - position.y, viewPoint.z - position.z};
+    viewVector.normalize();
+    Vector3d objVector{
+        point.x - (position.x + viewVector.x() * zf),
+        point.y - (position.y + viewVector.y() * zf),
+        point.z - (position.z + viewVector.z() * zf)
+    };
+
+    return viewVector.dot(objVector) > 0;
+}
+
 Ray Camera::emitRay(double x, double y) const
 {
-    Eigen::Vector4d ray{x,y, zf,1};
+    Eigen::Vector4d ray{x, y, zf, 1};
     ray = cameraMatrixInverse * ray;
     ray /= ray.w();
     const auto result = Ray{viewPoint, {ray.x(), ray.y(), ray.z()}};

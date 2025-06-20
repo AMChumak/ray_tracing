@@ -31,25 +31,26 @@ void WireframeRenderStrategy::render(QImage& image, SceneDescription& scene, Con
         };
         for (auto polygon : polygons)
         {
+            if (!camera.isVisible(polygon.points[0]) || !camera.isVisible(polygon.points[1]) || !camera.isVisible(polygon.points[2]))
+                continue;
             Eigen::Vector4d vA{polygon.points[0].x, polygon.points[0].y, polygon.points[0].z,1};
             Eigen::Vector4d vB{polygon.points[1].x, polygon.points[1].y, polygon.points[1].z,1};
             Eigen::Vector4d vC{polygon.points[2].x, polygon.points[2].y, polygon.points[2].z,1};
 
 
             vA = transformation * vA;
-            vA /= vA.w();
             vB = transformation * vB;
-            vB /= vB.w();
             vC = transformation * vC;
+            vA /= vA.w();
+            vB /= vB.w();
             vC /= vC.w();
 
             // check normal
             bool isVisible = true;
 
-
             Eigen::Vector3d v1{(vA - vB).x(), (vA - vB).y(), (vA - vB).z()};
             Eigen::Vector3d v2{(vC - vA).x(),(vC - vA).y(),(vC - vA).z()};
-            if (v1.cross(v2).z() < 0) // co-directional normals, polygon is hidden so inverted cause of camera's X Axis
+            if (v1.cross(v2).z() <= 0) // co-directional normals, polygon is hidden so inverted cause of camera's X Axis
                 isVisible = false;
 
             QColor lineColor = linesColor;
@@ -58,7 +59,6 @@ void WireframeRenderStrategy::render(QImage& image, SceneDescription& scene, Con
                 //continue;
                 lineColor = {linesColor.red() / 2, linesColor.green() / 2, linesColor.blue() / 2};
             }
-
 
             Point3D p1{vA.x(), vA.y(), vA.z()};
             Point3D p2{vB.x(), vB.y(), vB.z()};
@@ -85,9 +85,9 @@ void WireframeRenderStrategy::render(QImage& image, SceneDescription& scene, Con
 
     for (auto& line : lines)
     {
-        int x1 = -w * line.begin.x + w / 2;
+        int x1 = w * line.begin.x + w / 2;
         int y1 = h * line.begin.y + h / 2;
-        int x2 = -w * line.end.x + w / 2;
+        int x2 = w * line.end.x + w / 2;
         int y2 = h * line.end.y + h / 2;
         painter.setPen(QPen(line.color));
         painter.drawLine(x1, y1, x2, y2);

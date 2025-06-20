@@ -4,6 +4,9 @@
 
 #include "MainWindow.h"
 
+#include <iostream>
+#include <qevent.h>
+
 MainWindow::MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene_, ConfigState* config_):
     QMainWindow(parent), m_layout(nullptr), m_window(nullptr)
 {
@@ -19,4 +22,6 @@ MainWindow::MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene
 
     setWindowTitle("AMC Ray Tracing");
     setMinimumSize(640, 480);
+    setFocusProxy(m_renderArea);
 }
+

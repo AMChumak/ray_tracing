@@ -9,6 +9,7 @@
 
 #include "Figure.h"
 
+
 class Camera
 {
 public:
@@ -31,7 +32,7 @@ public:
     void rotateAroundUp(const double& angle);
     void rotateAroundX(const double& angle);
     void rotateAroundZ(const double& angle);
-
+    bool isVisible(const Point3D& point) const;
     [[nodiscard]] Ray emitRay(double x, double y) const;
 
     void zoom(double q);
