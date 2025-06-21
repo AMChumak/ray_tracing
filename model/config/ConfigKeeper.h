@@ -6,12 +6,12 @@
 
 struct ConfigState
 {
-    unsigned char br;
-    unsigned char bg;
-    unsigned char bb;
+    int br;
+    int bg;
+    int bb;
     double gamma;
-    unsigned char depth;
-    unsigned char quality;
+    int depth;
+    int quality;
     Point3D eye;
     Point3D view;
     Point3D up;

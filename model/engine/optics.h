@@ -8,16 +8,16 @@
 struct LightSource
 {
     Point3D position;
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
+    int r;
+    int g;
+    int b;
 };
 
 struct SceneProps
 {
-    unsigned char ar;
-    unsigned char ag;
-    unsigned char ab;
+    int ar;
+    int ag;
+    int ab;
     std::vector<LightSource> lights;
 };
 

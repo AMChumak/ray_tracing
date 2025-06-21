@@ -7,6 +7,13 @@ set(CMAKE_PREFIX_PATH "/home/anton/Qt/6.8.1/gcc_64/lib/cmake")
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Gui)
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 add_subdirectory(model/config)
 add_subdirectory(model/engine)
 add_subdirectory(view)
