@@ -59,6 +59,7 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
     intensity.g += static_cast<double>(scene.props.ag) / 255.0 * scene.optics[objIdx].kdg;
     intensity.b += static_cast<double>(scene.props.ab) / 255.0 * scene.optics[objIdx].kdb;
 
+
     //normal and view vectors
     Eigen::Vector3d viewV{-antiV.direction.x, -antiV.direction.y, -antiV.direction.z};
     viewV.normalize();
@@ -100,7 +101,7 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
         intensity.g += static_cast<double>(ls.g) / 255.0 / (lsDist * lsDist) *
             (scene.optics[objIdx].kdg * diffuseI + scene.optics[objIdx].ksg * reflectI);
 
-        intensity.g += static_cast<double>(ls.b) / 255.0 / (lsDist * lsDist) *
+        intensity.b += static_cast<double>(ls.b) / 255.0 / (lsDist * lsDist) *
             (scene.optics[objIdx].kdb * diffuseI + scene.optics[objIdx].ksb * reflectI);
     }
 
@@ -110,7 +111,7 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
     //compute reflection from other objects
 
     Eigen::Vector3d projVN = normalV * normalV.dot(viewV) / normalV.dot(normalV);
-    Eigen::Vector3d reflV = viewV + 2 * projVN;
+    Eigen::Vector3d reflV = -viewV + 2 * projVN;
     Ray reflection{normal.origin, Point3D{reflV.x(), reflV.y(), reflV.z()}};
 
     ReflRes nextNormal = getNormalInNearestReflection(scene, reflection);
@@ -148,10 +149,10 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
 /*draw 1 pixel*/
 static void drawPixel(std::vector<std::vector<Intensity>>& result, SceneDescription& scene, ConfigState& config,
                       Camera& camera, int qual, int x,
-                      int y)
+                      int y, int iw, int ih)
 {
     //find object or set background
-    Ray viewRay = camera.emitRay(x, y);
+    Ray viewRay = camera.emitRay(x, y, iw, ih);
     ReflRes firstReflection = getNormalInNearestReflection(scene, viewRay);
     if (firstReflection.normal.direction == Point3D{})
     {
@@ -167,9 +168,10 @@ static void drawPixel(std::vector<std::vector<Intensity>>& result, SceneDescript
 
 void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, ConfigState& config, Camera& camera)
 {
+    int iw = image.width();
+    int ih = image.height();
     std::vector<std::vector<Intensity>> result;
     result.resize(image.width());
-    int totalSize = image.width() * image.height();
     {
         std::lock_guard guard{rcMutex};
         readyCnt = 0;
@@ -181,14 +183,14 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
         result[x].resize(image.height());
     }
 
-#pragma omp parallel for collapse(2)
+//#pragma omp parallel for collapse(2)
     for (int x = 0; x < image.width(); x++)
     {
         for (int y = 0; y < image.height(); y++)
         {
-            drawPixel(result, scene, config, camera, 0, x, y);
+            drawPixel(result, scene, config, camera, 0, x, y, iw, ih);
 
-#pragma omp atomic
+//#pragma omp critical
             {
                 {
                     std::lock_guard guard(rcMutex);
@@ -205,29 +207,31 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
             }
         }
     }
-
-    int ih = image.height();
-    int iw = image.width();
-#pragma omp parallel for
-    for (int y = 0; y < image.height(); y++)
+//#pragma omp parallel for
+    for (int y = 0; y < ih; y++)
     {
         auto* line = image.scanLine(y);
 
-        for (int x = 0; x < image.width(); x++)
+        for (int x = 0; x < iw; x++)
         {
             if (result[x][y].r >= 0)
             {
-                line[4 * x + 0] = static_cast<int>((result[x][y].b / maxV + 0.5) * 255);
-                line[4 * x + 1] = static_cast<int>((result[x][y].g / maxV + 0.5) * 255);
-                line[4 * x + 2] = static_cast<int>((result[x][y].r / maxV + 0.5) * 255);
+                line[4 * x + 0] = static_cast<uchar>(static_cast<int>((result[x][y].b / maxV) * 255) + 0.5);
+                line[4 * x + 1] = static_cast<uchar>(static_cast<int>((result[x][y].g / maxV) * 255) + 0.5);
+                line[4 * x + 2] = static_cast<uchar>(static_cast<int>((result[x][y].r / maxV) * 255) + 0.5);
             }
             else
             {
-                line[4 * x + 0] = config.bb;
-                line[4 * x + 1] = config.bg;
-                line[4 * x + 2] = config.br;
+                line[4 * x + 0] = static_cast<uchar>(config.bb);
+                line[4 * x + 1] = static_cast<uchar>(config.bg);
+                line[4 * x + 2] = static_cast<uchar>(config.br);
             }
+            line[4 * x + 3] = 0xFF;
         }
+    }
+    {
+        std::lock_guard guard{rcMutex};
+        readyCnt = 0;
     }
 }
 

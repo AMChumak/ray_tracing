@@ -44,15 +44,15 @@ Ray Sphere::getNormalInReflection(Ray& incident)
     };
     Eigen::Vector3d originV{incident.origin.x, incident.origin.y, incident.origin.z};
 
-    const Eigen::Vector3d diffOC{originV.x() - center.x(), originV.y() - center.y(), originV.z() - center.z()};
+    const Eigen::Vector3d diffCO{center.x() - originV.x(), center.y() - originV.y(), center.z() - originV.z()};
 
     // compute square equality
     //take nearest root => (k-sqrt(D1)) / a
-    double k = incidentV.dot(diffOC);
+    double k = incidentV.dot(diffCO);
     double a = incidentV.dot(incidentV);
-    double c = diffOC.dot(diffOC) - radius * radius;
+    double c = diffCO.dot(diffCO) - radius * radius;
     double D1 = k * k - a * c;
-    if (D1 <= 0)
+    if (D1 < 0)
         return Ray{};
 
     double q = (k - std::sqrt(D1)) / a;
@@ -61,9 +61,13 @@ Ray Sphere::getNormalInReflection(Ray& incident)
     {
         return Ray{};
     }
-    Point3D intersectionP = incident.origin + incident.direction * q;
+    Point3D intersectionP = incident.origin;
+    Point3D hp = incident.direction * q;
+    intersectionP += hp;
     Eigen::Vector3d intersectionV{intersectionP.x, intersectionP.y, intersectionP.z};
-    Eigen::Vector3d normal{intersectionV.x() - center.x(),intersectionV.y() - center.y(),intersectionV.z() - center.z()};
+    Eigen::Vector3d normal{
+        intersectionV.x() - center.x(), intersectionV.y() - center.y(), intersectionV.z() - center.z()
+    };
     normal.normalize();
     return Ray{
         {intersectionV.x(), intersectionV.y(), intersectionV.z()},
@@ -81,30 +85,38 @@ std::vector<Polygon> Sphere::polygons()
     double smallR = M_SQRT3 * radius / 2;
     grid[1] = {center.x() - smallR, center.y(), center.z() - radius / 2};
     grid[2] = {
-        center.x() - std::cos(2 * M_PI / 5) * smallR, center.y() - std::sin(2 * M_PI / 5) * smallR, center.z() - radius / 2
+        center.x() - std::cos(2 * M_PI / 5) * smallR, center.y() - std::sin(2 * M_PI / 5) * smallR,
+        center.z() - radius / 2
     };
     grid[3] = {
-        center.x() - std::cos(4 * M_PI / 5) * smallR, center.y() - std::sin(4 * M_PI / 5) * smallR, center.z() - radius / 2
+        center.x() - std::cos(4 * M_PI / 5) * smallR, center.y() - std::sin(4 * M_PI / 5) * smallR,
+        center.z() - radius / 2
     };
     grid[4] = {
-        center.x() - std::cos(6 * M_PI / 5) * smallR, center.y() - std::sin(6 * M_PI / 5) * smallR, center.z() - radius / 2
+        center.x() - std::cos(6 * M_PI / 5) * smallR, center.y() - std::sin(6 * M_PI / 5) * smallR,
+        center.z() - radius / 2
     };
     grid[5] = {
-        center.x() - std::cos(8 * M_PI / 5) * smallR, center.y() - std::sin(8 * M_PI / 5) * smallR, center.z() - radius / 2
+        center.x() - std::cos(8 * M_PI / 5) * smallR, center.y() - std::sin(8 * M_PI / 5) * smallR,
+        center.z() - radius / 2
     };
 
     grid[6] = {center.x() + smallR, center.y(), center.z() + radius / 2};
     grid[7] = {
-        center.x() + std::cos(2 * M_PI / 5) * smallR, center.y() + std::sin(2 * M_PI / 5) * smallR, center.z() + radius / 2
+        center.x() + std::cos(2 * M_PI / 5) * smallR, center.y() + std::sin(2 * M_PI / 5) * smallR,
+        center.z() + radius / 2
     };
     grid[8] = {
-        center.x() + std::cos(4 * M_PI / 5) * smallR, center.y() + std::sin(4 * M_PI / 5) * smallR, center.z() + radius / 2
+        center.x() + std::cos(4 * M_PI / 5) * smallR, center.y() + std::sin(4 * M_PI / 5) * smallR,
+        center.z() + radius / 2
     };
     grid[9] = {
-        center.x() + std::cos(6 * M_PI / 5) * smallR, center.y() + std::sin(6 * M_PI / 5) * smallR, center.z() + radius / 2
+        center.x() + std::cos(6 * M_PI / 5) * smallR, center.y() + std::sin(6 * M_PI / 5) * smallR,
+        center.z() + radius / 2
     };
     grid[10] = {
-        center.x() + std::cos(8 * M_PI / 5) * smallR, center.y() + std::sin(8 * M_PI / 5) * smallR, center.z() + radius / 2
+        center.x() + std::cos(8 * M_PI / 5) * smallR, center.y() + std::sin(8 * M_PI / 5) * smallR,
+        center.z() + radius / 2
     };
 
     grid[11] = {center.x(), center.y(), center.z() + radius};

@@ -6,6 +6,8 @@
 #define RENDERAREA_H
 
 #include <mutex>
+#include <qprogressbar.h>
+#include <qstackedlayout.h>
 #include <QWidget>
 
 #include "Camera.h"
@@ -36,22 +38,34 @@ private slots:
     void onRequestUpdate();
 
 private:
+    void rtRenderStart();
     void renderWireframes();
+    void renderRayTracing();
 
 private:
     QImage* screen;
     Camera* camera;
     SceneDescription* scene;
     ConfigState* config;
-    FilledRenderStrategy filledRenderStrategy;
-    WireframeRenderStrategy wireframeRenderStrategy;
+    FilledRenderStrategy filledRenderStrategy{};
+    WireframeRenderStrategy wireframeRenderStrategy{};
 
     Point3D moveStep{};
     std::mutex stepM;
     std::mutex cameraM;
 
-    std::thread* wireRenderThread;
-    bool wireRenderThreadRunning;
+    std::thread* wireRenderThread{};
+    bool wireRenderThreadRunning{};
+
+    std::thread* rtRenderThread{};
+    bool rtRenderThreadRunning{};
+    QImage *render{};
+
+    int progress{};
+    QProgressBar *progressBar{};
+    QStackedLayout *stackLayout{};
+
+    bool isRenderShowing{};
 
     bool keyWPressed{};
     bool keyAPressed{};
@@ -59,6 +73,7 @@ private:
     bool keyDPressed{};
     bool keyCtrlPressed{};
     bool keyShiftPressed{};
+    bool renderInProcess{};
 };
 
 inline void RenderArea::onRequestUpdate()

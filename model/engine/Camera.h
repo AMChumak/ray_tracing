@@ -33,7 +33,7 @@ public:
     void rotateAroundX(const double& angle);
     void rotateAroundZ(const double& angle);
     bool isVisible(const Point3D& point) const;
-    [[nodiscard]] Ray emitRay(double x, double y) const;
+    [[nodiscard]] Ray emitRay(int x, int y, int iw, int ih) const;
 
     void zoom(double q);
 
@@ -46,7 +46,7 @@ private:
     void updateAxes();
     Eigen::Vector3d rotateAround(Eigen::Vector3d axis, Eigen::Vector3d vector, double angle);
     void updateSystemMatrix();
-    static void addRotation (Eigen::Matrix4d &totalRotation, const Eigen::Vector3d &begin, const Eigen::Vector3d &end);
+    static void addRotation (Eigen::Matrix4d &totalRotation, const Eigen::Vector3d &begin, const Eigen::Vector3d &end, const Eigen::Vector3d &helpAxis = Eigen::Vector3d::Zero());
     void updateRotationMatrix();
     void updateProjectionMatrix();
     void updateCameraMatrix();

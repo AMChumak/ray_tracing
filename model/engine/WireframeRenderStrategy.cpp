@@ -71,7 +71,7 @@ void WireframeRenderStrategy::render(QImage& image, SceneDescription& scene, Con
     }
     std::sort(lines.begin(), lines.end(), [](const Line& a, const Line& b)
     {
-        if (comparePoints(a.begin, b.begin) < 0) return true;
+        if (comparePoints(a.begin, b.begin) > 0) return true;
         return false;
     });
 
@@ -85,10 +85,10 @@ void WireframeRenderStrategy::render(QImage& image, SceneDescription& scene, Con
 
     for (auto& line : lines)
     {
-        int x1 = w * line.begin.x + w / 2;
-        int y1 = h * line.begin.y + h / 2;
-        int x2 = w * line.end.x + w / 2;
-        int y2 = h * line.end.y + h / 2;
+        int x1 = -w/2 * line.begin.x + w / 2;
+        int y1 = -h/2 * line.begin.y + h / 2;
+        int x2 = -w/2 * line.end.x + w / 2;
+        int y2 = -h/2 * line.end.y + h / 2;
         painter.setPen(QPen(line.color));
         painter.drawLine(x1, y1, x2, y2);
     }

@@ -162,7 +162,7 @@ void Camera::updateSystemMatrix()
     updateCameraMatrix();
 }
 
-void Camera::addRotation(Eigen::Matrix4d& totalRotation, const Eigen::Vector3d& begin, const Eigen::Vector3d& end)
+void Camera::addRotation(Eigen::Matrix4d& totalRotation, const Eigen::Vector3d& begin, const Eigen::Vector3d& end, const Eigen::Vector3d& helpAxis)
 {
     //check that we should rotate
     if (begin.dot(end) == begin.norm() * end.norm())
@@ -181,9 +181,17 @@ void Camera::addRotation(Eigen::Matrix4d& totalRotation, const Eigen::Vector3d& 
     a.normalize();
     b.normalize();
     Eigen::Vector3d norm = a.cross(b);
+    bool isAnti = false;
+    if (norm.norm() == 0)
+    {
+        norm = helpAxis;
+        isAnti = true;
+    }
     //find angle
     double cosA = a.dot(b) / (a.norm() * b.norm());
     double sinA = norm.norm() / (a.norm() * b.norm());
+    if (isAnti)
+        sinA = 0;
     //find diff matrix
     double cosr = 1 - cosA;
     norm.normalize();
@@ -210,16 +218,17 @@ void Camera::updateRotationMatrix()
     // connect z axes
     Eigen::Vector3d spaceZ{0, 0, 1};
     Eigen::Vector3d cameraZ{zVector.x, zVector.y, zVector.z};
-    addRotation(rotationMatrix, cameraZ, spaceZ);
-    addRotation(rotationMatrixInverse, spaceZ, cameraZ);
+    Eigen::Vector3d helpXAxis{xVector.x, xVector.y, xVector.z};
+    addRotation(rotationMatrixInverse, spaceZ, cameraZ, helpXAxis);
+    addRotation(rotationMatrix, cameraZ, spaceZ, helpXAxis);
 
     // connect x axes
     Eigen::Vector3d spaceX{1, 0, 0};
     Eigen::Vector4d cameraX{xVector.x, xVector.y, xVector.z, 1};
     cameraX = rotationMatrix * cameraX;
     Vector3d preparedCameraX{cameraX.x(), cameraX.y(), cameraX.z()};
-    addRotation(rotationMatrix, preparedCameraX, spaceX);
-    addRotation(rotationMatrixInverse, spaceX, preparedCameraX);
+    addRotation(rotationMatrixInverse, spaceX, preparedCameraX, cameraZ);
+    addRotation(rotationMatrix, preparedCameraX, spaceX, spaceZ);
 
     updateCameraMatrix();
 }
@@ -309,11 +318,13 @@ bool Camera::isVisible(const Point3D& point) const
     return viewVector.dot(objVector) > 0;
 }
 
-Ray Camera::emitRay(double x, double y) const
+Ray Camera::emitRay(int x, int y, int iw, int ih) const
 {
-    Eigen::Vector4d ray{x, y, zf, 1};
+    double px = - (x + 0.5) / iw * sw + static_cast<double>(sw) / 2.0;
+    double py = - (y + 0.5) / ih * sh + static_cast<double>(sh) / 2.0;
+    Eigen::Vector4d ray{px,py , zf, 1};
     ray = cameraMatrixInverse * ray;
     ray /= ray.w();
-    const auto result = Ray{viewPoint, {ray.x(), ray.y(), ray.z()}};
+    const auto result = Ray{position, {ray.x()-position.x, ray.y()-position.y, ray.z()-position.z}};
     return result;
 }
