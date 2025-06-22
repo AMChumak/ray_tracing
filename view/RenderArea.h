@@ -23,9 +23,19 @@ class RenderArea final : public QWidget
 
 public:
     explicit RenderArea(QWidget* parent, Camera* camera_, SceneDescription* scene_, ConfigState* config_);
+    void saveRender(const QString& fileName) const;
+    void saveConfig(const QString& fileName);
+    void setConfig(const ConfigState &config);
 
 signals:
     void requestUpdate();
+    void changedRenderMode(bool newMode);
+
+public slots:
+    void onChangeRenderMode(const bool &mode);
+    void onBackgroundColorChanged(const QColor &color);
+    void onGammaChanged(const double &gamma);
+    void onTracingDepthChanged(const int &depth);
 
 protected slots:
     void paintEvent(QPaintEvent* event) override;
@@ -59,11 +69,11 @@ private:
 
     std::thread* rtRenderThread{};
     bool rtRenderThreadRunning{};
-    QImage *render{};
+    QImage* render{};
 
     int progress{};
-    QProgressBar *progressBar{};
-    QStackedLayout *stackLayout{};
+    QProgressBar* progressBar{};
+    QStackedLayout* stackLayout{};
 
     bool isRenderShowing{};
 

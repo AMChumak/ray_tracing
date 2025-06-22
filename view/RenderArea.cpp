@@ -7,6 +7,7 @@
 #include <iostream>
 #include <qcolumnview.h>
 #include <qevent.h>
+#include <QFile>
 #include <QPainter>
 
 RenderArea::RenderArea(QWidget* parent, Camera* camera_, SceneDescription* scene_,
@@ -15,9 +16,79 @@ RenderArea::RenderArea(QWidget* parent, Camera* camera_, SceneDescription* scene
     connect(this, &RenderArea::requestUpdate, this, &RenderArea::onRequestUpdate, Qt::QueuedConnection);
 
     setFocus();
-    screen = new QImage(640, 480, QImage::Format_ARGB32);
+    setFocusPolicy(Qt::StrongFocus);
+    screen = new QImage(this->width(), this->height(), QImage::Format_ARGB32);
     wireRenderThreadRunning = true;
     wireRenderThread = new std::thread(&RenderArea::renderWireframes, this);
+}
+
+void RenderArea::saveRender(const QString& fileName) const
+{
+    if (render)
+    {
+        QFile file(fileName);
+        render->save(&file);
+    }
+}
+
+void RenderArea::saveConfig(const QString& fileName)
+{
+    ConfigKeeper keeper;
+    {
+        std::lock_guard guard(cameraM);
+        config->eye = camera->getPosition();
+        config->view = camera->getViewPoint();
+        config->up = camera->getUpVector();
+        config->zf = camera->getZf();
+        config->zb = camera->getZb();
+        keeper.state = *config;
+    }
+    keeper.writeConfig(fileName.toStdString());
+}
+
+void RenderArea::setConfig(const ConfigState& config)
+{
+    std::lock_guard guard(cameraM);
+    *this->config = config;
+    *camera = Camera{
+        config.eye, config.view, config.up, config.zf,
+        config.zb, config.sw, config.sh
+    };
+}
+
+void RenderArea::onChangeRenderMode(const bool &mode)
+{
+    if (mode && !isRenderShowing)
+    {
+        rtRenderStart();
+    }
+    else if (!mode && isRenderShowing)
+    {
+        if (renderInProcess)
+            return;
+        isRenderShowing = false;
+        emit changedRenderMode(false);
+    }
+}
+
+void RenderArea::onBackgroundColorChanged(const QColor& color)
+{
+    std::lock_guard guard(cameraM);
+    config->br = color.red();
+    config->bg = color.green();
+    config->bb = color.blue();
+}
+
+void RenderArea::onGammaChanged(const double& gamma)
+{
+    std::lock_guard guard(cameraM);
+    config->gamma = gamma;
+}
+
+void RenderArea::onTracingDepthChanged(const int& depth)
+{
+    std::lock_guard guard(cameraM);
+    config->depth = depth;
 }
 
 void RenderArea::paintEvent(QPaintEvent* event)
@@ -34,16 +105,19 @@ void RenderArea::paintEvent(QPaintEvent* event)
 
         if (progress)
         {
-            double percent = progress / (screen->width() * screen->height()) * 100;
+            painter.setPen(Qt::black);
+            auto progressMsg = QString("rendering...");
+            painter.setFont(QFont("Arial", 20));
+            painter.drawText(QPointF(84, 50), progressMsg);
+            double percent = static_cast<double>(progress) / (screen->width() * screen->height()) * 100;
+            QColor color = Qt::red;
             if (percent < 34)
-                painter.setPen(Qt::red);
+                color = Qt::red;
             else if (percent < 67)
-                painter.setPen(Qt::yellow);
+                color = Qt::yellow;
             else
-                painter.setPen(Qt::green);
-            auto progressMsg = QString("%1%").arg(static_cast<int>(percent));
-            painter.setFont(QFont("Arial", 40));
-            painter.drawText(QPointF(50, 50), progressMsg);
+                color = Qt::green;
+            painter.fillRect(QRect(50, 60, 2 * static_cast<int>(percent), 20), color);
         }
     }
 
@@ -53,6 +127,15 @@ void RenderArea::paintEvent(QPaintEvent* event)
 
 void RenderArea::resizeEvent(QResizeEvent* event)
 {
+    if (screen)
+    {
+        std::lock_guard guard(cameraM);
+        delete screen;
+        screen = new QImage(this->width(), this->height(), QImage::Format_ARGB32);
+        double q = (double)this->width() / (double)screen->height();
+        camera->updateShSw(q);
+        config->sw = config->sh * q;
+    }
     QWidget::resizeEvent(event);
 }
 
@@ -103,12 +186,9 @@ void RenderArea::keyPressEvent(QKeyEvent* event)
         if (isRenderShowing)
         {
             isRenderShowing = false;
+            emit changedRenderMode(false);
             return;
         }
-        if (renderInProcess)
-            return;
-
-        renderInProcess = true;
         rtRenderStart();
     }
     QWidget::keyPressEvent(event);
@@ -190,7 +270,12 @@ void RenderArea::wheelEvent(QWheelEvent* event)
 
 void RenderArea::rtRenderStart()
 {
+    if (renderInProcess)
+        return;
+
+    renderInProcess = true;
     rtRenderThread = new std::thread(&RenderArea::renderRayTracing, this);
+    emit changedRenderMode(true);
 }
 
 void RenderArea::renderWireframes()

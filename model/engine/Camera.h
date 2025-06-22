@@ -27,6 +27,7 @@ public:
     void setSw(double sw);
     [[nodiscard]] double getSh() const;
     void setSh(double sh);
+    void updateShSw(const double &q);
 
     void move(const Point3D& step);
     void rotateAroundUp(const double& angle);

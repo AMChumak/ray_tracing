@@ -158,7 +158,6 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                 // add figure
                                 scene.figures.push_back(new Sphere(center, radius));
                                 scene.optics.push_back(optics);
-                                step++;
                                 figureType = -1;
                             }
                             break;
@@ -183,7 +182,6 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                 // add figure
                                 scene.figures.push_back(new Box(minP, maxP));
                                 scene.optics.push_back(optics);
-                                step++;
                                 figureType = -1;
                             }
                             break;
@@ -213,7 +211,6 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                 // add figure
                                 scene.figures.push_back(new Triangle(Polygon{ta,tb,tc}));
                                 scene.optics.push_back(optics);
-                                step++;
                                 figureType = -1;
                             }
                             break;
@@ -248,7 +245,6 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                 // add figure
                                 scene.figures.push_back(new Quadrangle(qa,qb,qc,qd));
                                 scene.optics.push_back(optics);
-                                step++;
                                 figureType = -1;
                             }
                             break;

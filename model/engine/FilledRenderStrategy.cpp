@@ -74,7 +74,6 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
         ReflRes firstReflection = getNormalInNearestReflection(scene, lightSourseRay);
         if (firstReflection.normal.direction == Point3D{})
         {
-            std::cout << "WTF!!: there is no reflection in ray from light source to object! " << std::endl;
             continue;
         }
         //check distance
@@ -99,26 +98,18 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
         double reflectI = normalV.dot(bisectV);
 
 
-        double check1 = static_cast<double>(ls.r) / 255.0 / lsDist *
+        intensity.r += static_cast<double>(ls.r) / 255.0 / lsDist *
         (scene.optics[objIdx].kdr * diffuseI + scene.optics[objIdx].ksr * std::pow(
             reflectI, scene.optics[objIdx].power));
-        intensity.r += check1;
-        if (check1 < 0)
-            std::cout << check1 << std::endl;
 
-        double check2 = static_cast<double>(ls.g) / 255.0 / lsDist *
+        intensity.g += static_cast<double>(ls.g) / 255.0 / lsDist *
         (scene.optics[objIdx].kdg * diffuseI + scene.optics[objIdx].ksg * std::pow(
             reflectI, scene.optics[objIdx].power));
-        intensity.g += check2;
-        if (check2 < 0)
-            std::cout << check2 << std::endl;
 
-        double check3 = static_cast<double>(ls.b) / 255.0 / lsDist *
+        intensity.b  += static_cast<double>(ls.b) / 255.0 / lsDist *
         (scene.optics[objIdx].kdb * diffuseI + scene.optics[objIdx].ksb * std::pow(
             reflectI, scene.optics[objIdx].power));
-        intensity.b += check3;
-        if (check3 < 0)
-            std::cout << check3 << std::endl;
+
     }
 
     if (!tracingRest)
@@ -197,14 +188,14 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
         result[x].resize(image.height());
     }
 
-    //#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for (int x = 0; x < image.width(); x++)
     {
         for (int y = 0; y < image.height(); y++)
         {
             drawPixel(result, scene, config, camera, 0, x, y, iw, ih);
 
-            //#pragma omp critical
+#pragma omp critical
             {
                 {
                     std::lock_guard guard(rcMutex);
@@ -221,7 +212,7 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
             }
         }
     }
-    //#pragma omp parallel for
+#pragma omp parallel for
     for (int y = 0; y < ih; y++)
     {
         auto* line = image.scanLine(y);
@@ -230,9 +221,15 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
         {
             if (result[x][y].r >= 0)
             {
-                line[4 * x + 0] = static_cast<uchar>(static_cast<int>((result[x][y].b / maxV) * 255) + 0.5);
-                line[4 * x + 1] = static_cast<uchar>(static_cast<int>((result[x][y].g / maxV) * 255) + 0.5);
-                line[4 * x + 2] = static_cast<uchar>(static_cast<int>((result[x][y].r / maxV) * 255) + 0.5);
+                double blue = (result[x][y].b / maxV);
+                blue = std::pow(blue,1.0 / config.gamma);
+                line[4 * x + 0] = static_cast<uchar>(static_cast<int>(blue * 255) + 0.5);
+                double green = (result[x][y].g / maxV);
+                green = std::pow(green,1.0 /config.gamma);
+                line[4 * x + 1] = static_cast<uchar>(static_cast<int>(green * 255) + 0.5);
+                double red = (result[x][y].r / maxV);
+                red = std::pow(red,1.0 /config.gamma);
+                line[4 * x + 2] = static_cast<uchar>(static_cast<int>(red * 255) + 0.5);
             }
             else
             {

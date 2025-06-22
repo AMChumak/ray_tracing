@@ -27,10 +27,12 @@ class ConfigKeeper
 public:
     ConfigKeeper();
     std::string readConfig(const std::string& configFile);
-    std::string writeConfig(const std::string& configFile) const;
+    std::string writeConfig(const std::string& configFile);
+    [[nodiscard]] bool isLoaded() const;
 
 public:
     ConfigState state{};
+    bool configLoaded = false;
 };
 
 

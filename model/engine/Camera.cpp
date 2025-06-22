@@ -84,6 +84,12 @@ void Camera::setSh(const double sh)
     this->sh = sh;
 }
 
+void Camera::updateShSw(const double &q)
+{
+    sw = q * sh;
+    updateProjectionMatrix();
+}
+
 
 void Camera::move(const Point3D& step)
 {

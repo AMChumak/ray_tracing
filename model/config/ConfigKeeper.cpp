@@ -121,7 +121,7 @@ std::string ConfigKeeper::readConfig(const std::string& configFile)
     return "";
 }
 
-std::string ConfigKeeper::writeConfig(const std::string& configFile) const
+std::string ConfigKeeper::writeConfig(const std::string& configFile)
 {
     try
     {
@@ -133,20 +133,25 @@ std::string ConfigKeeper::writeConfig(const std::string& configFile) const
         }
 
         file << state.br << " " << state.bg << " " << state.bb << " // Br Bg Bb - цвет фона в формате 0..255" << std::endl;
-        file << state.gamma << " // гамма в формате 0.0 ... 1.0" << std::endl;
+        file << state.gamma << " // гамма в формате 0.1 ... 10.0" << std::endl;
         file << state.depth << " // глубина прорисовки в формате 1..10" << std::endl;
         file << state.quality  << " // качество в формате 0..4" << std::endl;
         file << state.eye.x << " " << state.eye.y << " " << state.eye.z  << " // eyeX eyeY eyeZ - точка камеры в координатах пространства (double)" << std::endl;
         file << state.view.x << " " << state.view.y << " " << state.view.z   << " // viewX viewY viewZ - точка на которую смотрит камера в координатах пространства (double)" <<std::endl;
         file << state.up.x << " " << state.up.y << " " << state.up.z << " // upX upY upZ - вектор вверх в координатах пространства" << std::endl;
-        file << state.br << " " << state.bg << " " << state.bb << " // Br Bg Bb - цвет фона в формате 0..255" << std::endl;
-        file << state.zf << " " << state.zf << " // zf zb - ближняя и дальняя границы прорисовки в координатах камеры" << std::endl;
+        file << state.zf << " " << state.zb << " // zf zb - ближняя и дальняя границы прорисовки в координатах камеры" << std::endl;
         file << state.sw << " " << state.sh << " //ширина и высота матрицы камеры (матрица находится на дальности zf от eye по направлению к view и повёрнута по вектору up)" << std::endl;
         file.close();
+        configLoaded = true;
     }
     catch (std::exception& e)
     {
         return e.what();
     }
     return "";
+}
+
+bool ConfigKeeper::isLoaded() const
+{
+    return configLoaded;
 }
