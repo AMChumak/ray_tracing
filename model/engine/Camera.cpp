@@ -214,22 +214,30 @@ void Camera::updateRotationMatrix()
 {
     rotationMatrix = Eigen::Matrix4d::Identity();
     rotationMatrixInverse = Eigen::Matrix4d::Identity();
-
+    Eigen::Matrix4d rotationMatrixInverseHelp = Eigen::Matrix4d::Identity();
     // connect z axes
     Eigen::Vector3d spaceZ{0, 0, 1};
     Eigen::Vector3d cameraZ{zVector.x, zVector.y, zVector.z};
     Eigen::Vector3d helpXAxis{xVector.x, xVector.y, xVector.z};
-    addRotation(rotationMatrixInverse, spaceZ, cameraZ, helpXAxis);
+
+
     addRotation(rotationMatrix, cameraZ, spaceZ, helpXAxis);
 
     // connect x axes
     Eigen::Vector3d spaceX{1, 0, 0};
     Eigen::Vector4d cameraX{xVector.x, xVector.y, xVector.z, 1};
-    cameraX = rotationMatrix * cameraX;
     Vector3d preparedCameraX{cameraX.x(), cameraX.y(), cameraX.z()};
     addRotation(rotationMatrixInverse, spaceX, preparedCameraX, cameraZ);
+    cameraX = rotationMatrix * cameraX;
+    preparedCameraX.x() = cameraX.x();
+    preparedCameraX.y() = cameraX.y();
+    preparedCameraX.z() = cameraX.z();
     addRotation(rotationMatrix, preparedCameraX, spaceX, spaceZ);
 
+    Eigen::Vector4d auxSpaceZ = {0,0,1,1};
+    auxSpaceZ = rotationMatrixInverse * auxSpaceZ;
+    Eigen::Vector3d preparedAuxZ{auxSpaceZ.x(), auxSpaceZ.y(), auxSpaceZ.z()};
+    addRotation(rotationMatrixInverse, preparedAuxZ, cameraZ, helpXAxis);
     updateCameraMatrix();
 }
 
