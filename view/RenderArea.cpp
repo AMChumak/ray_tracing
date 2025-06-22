@@ -24,7 +24,6 @@ void RenderArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
 
-    std::cout << isRenderShowing << std::endl;
     if (isRenderShowing)
     {
         painter.drawImage(QRect(0, 0, render->width(), render->height()), *render);

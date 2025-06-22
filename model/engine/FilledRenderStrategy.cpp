@@ -75,10 +75,13 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
         if (firstReflection.normal.direction == Point3D{})
         {
             std::cout << "WTF!!: there is no reflection in ray from light source to object! " << std::endl;
-            throw std::exception{};
+            continue;
         }
         //check distance
-        if (objIdx != firstReflection.objIdx) //there is could be error in computations
+        double dx = firstReflection.normal.origin.x - normal.origin.x;
+        double dy = firstReflection.normal.origin.y - normal.origin.y;
+        double dz = firstReflection.normal.origin.z - normal.origin.z;
+        if (dx * dx + dy * dy + dz * dz > 0.0000000001) //there is could be error in computations
         {
             continue;
         }
@@ -86,7 +89,7 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
         //light source is visible. Add intensity
 
         Eigen::Vector3d lightV{lightSourseRay.direction.x, lightSourseRay.direction.y, lightSourseRay.direction.z};
-        double lsDist = lightV.norm();
+        double lsDist = lightV.dot(lightV);
         lightV.normalize();
 
         Eigen::Vector3d bisectV{viewV - lightV}; //H vector
@@ -95,14 +98,27 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
         double diffuseI = normalV.dot(-lightV);
         double reflectI = normalV.dot(bisectV);
 
-        intensity.r += static_cast<double>(ls.r) / 255.0 / (lsDist * lsDist) *
-            (scene.optics[objIdx].kdr * diffuseI + scene.optics[objIdx].ksr * reflectI);
 
-        intensity.g += static_cast<double>(ls.g) / 255.0 / (lsDist * lsDist) *
-            (scene.optics[objIdx].kdg * diffuseI + scene.optics[objIdx].ksg * reflectI);
+        double check1 = static_cast<double>(ls.r) / 255.0 / lsDist *
+        (scene.optics[objIdx].kdr * diffuseI + scene.optics[objIdx].ksr * std::pow(
+            reflectI, scene.optics[objIdx].power));
+        intensity.r += check1;
+        if (check1 < 0)
+            std::cout << check1 << std::endl;
 
-        intensity.b += static_cast<double>(ls.b) / 255.0 / (lsDist * lsDist) *
-            (scene.optics[objIdx].kdb * diffuseI + scene.optics[objIdx].ksb * reflectI);
+        double check2 = static_cast<double>(ls.g) / 255.0 / lsDist *
+        (scene.optics[objIdx].kdg * diffuseI + scene.optics[objIdx].ksg * std::pow(
+            reflectI, scene.optics[objIdx].power));
+        intensity.g += check2;
+        if (check2 < 0)
+            std::cout << check2 << std::endl;
+
+        double check3 = static_cast<double>(ls.b) / 255.0 / lsDist *
+        (scene.optics[objIdx].kdb * diffuseI + scene.optics[objIdx].ksb * std::pow(
+            reflectI, scene.optics[objIdx].power));
+        intensity.b += check3;
+        if (check3 < 0)
+            std::cout << check3 << std::endl;
     }
 
     if (!tracingRest)
@@ -140,8 +156,6 @@ Intensity computePointIntensity(SceneDescription& scene, ConfigState& config, in
     intensity.r += nextIntensity.r / (reflDist * reflDist) * scene.optics[objIdx].ksr;
     intensity.g += nextIntensity.g / (reflDist * reflDist) * scene.optics[objIdx].ksg;
     intensity.b += nextIntensity.b / (reflDist * reflDist) * scene.optics[objIdx].ksb;
-
-
     return intensity;
 }
 
@@ -183,14 +197,14 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
         result[x].resize(image.height());
     }
 
-//#pragma omp parallel for collapse(2)
+    //#pragma omp parallel for collapse(2)
     for (int x = 0; x < image.width(); x++)
     {
         for (int y = 0; y < image.height(); y++)
         {
             drawPixel(result, scene, config, camera, 0, x, y, iw, ih);
 
-//#pragma omp critical
+            //#pragma omp critical
             {
                 {
                     std::lock_guard guard(rcMutex);
@@ -207,7 +221,7 @@ void FilledRenderStrategy::render(QImage& image, SceneDescription& scene, Config
             }
         }
     }
-//#pragma omp parallel for
+    //#pragma omp parallel for
     for (int y = 0; y < ih; y++)
     {
         auto* line = image.scanLine(y);
