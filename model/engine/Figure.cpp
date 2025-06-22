@@ -77,7 +77,7 @@ Ray getPolygonNormalInReflection(const Polygon &polygon, Ray& incident, Eigen::V
     };
     Eigen::Vector3d originV{incident.origin.x, incident.origin.y, incident.origin.z};
 
-    if (incidentV.dot(normal) <= 0)
+    if (incidentV.dot(normal) >= 0)
     {
         return Ray{}; //there is no intersection
     }
@@ -124,7 +124,7 @@ Ray getPolygonNormalInReflection(const Polygon &polygon, Ray& incident, Eigen::V
     Eigen::Vector3d vecBI = intersectionV - Eigen::Vector3d{
         polygon.points[1].x, polygon.points[1].y, polygon.points[1].z
     };
-    pr = vecBI * vecBI.dot(vecBC) / vecBC.dot(vecBC);
+    pr = vecBC * vecBI.dot(vecBC) / vecBC.dot(vecBC);
     rest = vecBI - pr;
     if (rest.dot(-vecAB) <= 0)
     {

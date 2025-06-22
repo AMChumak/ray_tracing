@@ -9,6 +9,7 @@
 #include <stdexcept>
 
 #include "Box.h"
+#include "Quadrangle.h"
 #include "Sphere.h"
 #include "Triangle.h"
 
@@ -245,7 +246,7 @@ SceneDescription SceneKeeper::getSceneDescription(std::string fileName)
                                     optics.ksb >> optics.power;
 
                                 // add figure
-                                scene.figures.push_back(new Triangle(Polygon{ta,tb,tc}));
+                                scene.figures.push_back(new Quadrangle(qa,qb,qc,qd));
                                 scene.optics.push_back(optics);
                                 step++;
                                 figureType = -1;
