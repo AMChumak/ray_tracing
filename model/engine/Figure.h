@@ -43,7 +43,10 @@ public:
     virtual ~Figure() = default;
     virtual std::vector<Polygon> polygons() = 0;
     virtual Ray getNormalInReflection(Ray& incident) = 0;
+    virtual std::pair<Point3D, Point3D> getBox()=0;
 };
+
+std::pair<Point3D, Point3D> getBox(std::vector<Figure *> figures);
 
 
 #endif //FIGURE_H

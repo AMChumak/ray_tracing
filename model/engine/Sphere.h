@@ -16,6 +16,8 @@ public:
 
     std::vector<Polygon> polygons() override;
     Ray getNormalInReflection(Ray& incident) override;
+    std::pair<Point3D, Point3D> getBox() override;
+
 private:
     [[nodiscard]] Point3D getArcCenter(Point3D a, Point3D b) const;
     void bisectPolygon(std::vector<Polygon>& dest, int startIndex, Polygon& source) const;

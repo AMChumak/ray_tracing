@@ -15,6 +15,7 @@ public:
     Quadrangle(const Point3D& p0, const Point3D& p1, const Point3D& p2, const Point3D& p3);
     std::vector<Polygon> polygons() override;
     Ray getNormalInReflection(Ray& incident) override;
+    std::pair<Point3D, Point3D> getBox() override;
 
 private:
     Point3D points[4];

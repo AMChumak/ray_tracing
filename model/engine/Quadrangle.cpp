@@ -101,3 +101,30 @@ Ray Quadrangle::getNormalInReflection(Ray& incident)
     normal = getPolygonNormalInReflection(second, incident, normal2, vecDE, vecDF, vecEF, radius2);
     return normal;
 }
+
+std::pair<Point3D, Point3D> Quadrangle::getBox()
+{
+    Point3D min = points[0];
+    Point3D max = points[0];
+
+    for (int i = 1; i < 4; i++)
+    {
+        auto &point = points[i];
+        if (point.x < min.x)
+            min.x = point.x;
+        if (point.x > max.x)
+            max.x = point.x;
+        if (point.y < min.y)
+            min.y = point.y;
+        if (point.y > max.y)
+            max.y = point.y;
+        if (point.z < min.z)
+            min.z = point.z;
+        if (point.z > max.z)
+            max.z = point.z;
+    }
+    Point3D diff{1,1,1};
+    min -= diff;
+    max += diff;
+    return std::make_pair(min, max);
+}

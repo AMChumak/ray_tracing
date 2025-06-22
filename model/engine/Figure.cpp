@@ -133,3 +133,36 @@ Ray getPolygonNormalInReflection(const Polygon &polygon, Ray& incident, Eigen::V
 
     return Ray{{intersectionV.x(), intersectionV.y(), intersectionV.z()}, {normal.x(), normal.y(), normal.z()}};
 }
+
+std::pair<Point3D, Point3D> getBox(std::vector<Figure*> figures)
+{
+    Point3D min{};
+    Point3D max{};
+    auto pair = figures[0]->getBox();
+    min = pair.first;
+    max = pair.second;
+
+    for (auto figure : figures)
+    {
+        auto box = figure->getBox();
+
+        if (box.first.x < min.x)
+            min.x = box.first.x;
+        if (box.first.y < min.y)
+            min.y = box.first.y;
+        if (box.first.z < min.z)
+            min.z = box.first.z;
+
+        if (box.second.x > max.x)
+            max.x = box.second.x;
+        if (box.second.y > max.y)
+            max.y = box.second.y;
+        if (box.second.z > max.z)
+            max.z = box.second.z;
+    }
+
+    Point3D diff{(max.x - min.x) / 40.0, (max.y - min.y) / 40.0, (max.z - min.z) / 40.0};
+    min -= diff;
+    max += diff;
+    return {min, max};
+}

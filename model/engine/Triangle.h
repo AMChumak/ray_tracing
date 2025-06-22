@@ -11,6 +11,7 @@ class Triangle : public Figure
     explicit Triangle(const Polygon& polygon);
     std::vector<Polygon> polygons() override;
     Ray getNormalInReflection(Ray& incident) override;
+    std::pair<Point3D, Point3D> getBox() override;
 
 private:
     Polygon polygon;

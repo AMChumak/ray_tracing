@@ -11,7 +11,7 @@
 
 ConfigKeeper::ConfigKeeper()
 {
-    state = {168, 217, 255, 1, 3,0, Point3D{0, 0, 0}, Point3D{0, 10, 0}, Point3D{0, 0, 1}, 8, 100, 1, 1080.0 / 1920.0};
+    state = {168, 217, 255, 1, 3,0, Point3D{0, 0, 0}, Point3D{0, 10, 0}, Point3D{0, 0, 1}, 2, 100, 1, 1080.0 / 1920.0};
 }
 
 std::string ConfigKeeper::readConfig(const std::string& configFile)
@@ -113,6 +113,7 @@ std::string ConfigKeeper::readConfig(const std::string& configFile)
             ++step;
         }
         file.close();
+        configLoaded = true;
     }
     catch (std::exception& e)
     {
@@ -142,7 +143,6 @@ std::string ConfigKeeper::writeConfig(const std::string& configFile)
         file << state.zf << " " << state.zb << " // zf zb - ближняя и дальняя границы прорисовки в координатах камеры" << std::endl;
         file << state.sw << " " << state.sh << " //ширина и высота матрицы камеры (матрица находится на дальности zf от eye по направлению к view и повёрнута по вектору up)" << std::endl;
         file.close();
-        configLoaded = true;
     }
     catch (std::exception& e)
     {

@@ -10,6 +10,7 @@
 #include <qfiledialog.h>
 
 #include "AboutWindow.h"
+#include "SceneKeeper.h"
 
 MainWindow::MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene_, ConfigState* config_):
     QMainWindow(parent), m_layout(nullptr), m_window(nullptr)
@@ -20,6 +21,7 @@ MainWindow::MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene
     m_loadRender = new QPushButton("Load Config");
     m_saveConfig = new QPushButton("Save Config");
     m_saveRender = new QPushButton("Export");
+    m_init = new QPushButton("Init");
     m_about = new QPushButton("About");
     m_renderMode = new QCheckBox("Render Mode");
     m_renderMode->setStyleSheet(R"(
@@ -78,6 +80,7 @@ MainWindow::MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene
     m_scrollLayout->addWidget(m_loadRender);
     m_scrollLayout->addWidget(m_saveConfig);
     m_scrollLayout->addWidget(m_saveRender);
+    m_scrollLayout->addWidget(m_init);
     m_scrollLayout->addWidget(m_about);
     m_scrollLayout->addWidget(m_renderMode);
     m_scrollLayout->addWidget(line);
@@ -123,6 +126,8 @@ MainWindow::MainWindow(QWidget* parent, Camera* camera_, SceneDescription* scene
     connect(m_saveConfig, &QPushButton::clicked, this, &MainWindow::onSaveConfig);
     connect(m_loadRender, &QPushButton::clicked, this, &MainWindow::onLoadConfig);
     connect(m_about, &QPushButton::clicked, this, &MainWindow::onAbout);
+    connect(m_init, &QPushButton::clicked, m_renderArea, &RenderArea::initCameraPosition);
+    connect(m_loadButton, &QPushButton::clicked, this, &MainWindow::onLoadScene);
 
     setWindowTitle("AMC Ray Tracing");
     setMinimumSize(840, 480);
@@ -184,5 +189,26 @@ void MainWindow::onLoadConfig()
     }
     ConfigKeeper keeper;
     keeper.readConfig(fileName.toStdString());
+    m_depthSpinBox->setValue(keeper.state.depth);
+    m_gammaSpinBox->setValue(keeper.state.gamma);
+    QPalette palette = m_paletteButton->palette();
+    palette.setColor(QPalette::Button, QColor(keeper.state.br,keeper.state.bg,keeper.state.bb));
+    m_paletteButton->setPalette(palette);
     m_renderArea->setConfig(keeper.state);
+}
+
+void MainWindow::onLoadScene()
+{
+    const QString sceneFileName = QFileDialog::getOpenFileName(this, "Choose scene", QDir::homePath(), "*.scene");
+    if (sceneFileName.isEmpty()) {
+        return;
+    }
+    SceneKeeper keeper;
+    SceneDescription scene = keeper.getSceneDescription(sceneFileName.toStdString());
+
+    QString configName = sceneFileName.sliced(0,sceneFileName.lastIndexOf('.') + 1);
+    configName = configName + "render";
+    ConfigKeeper keeper2;
+    keeper2.readConfig(configName.toStdString());
+    m_renderArea->loadScene(scene, keeper2.state, keeper2.configLoaded);
 }

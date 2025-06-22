@@ -35,6 +35,7 @@ public slots:
     void onAbout();
     void onSaveConfig();
     void onLoadConfig();
+    void onLoadScene();
 
 private:
     QWidget* m_window;
@@ -47,6 +48,7 @@ private:
     QPushButton* m_loadRender;
     QPushButton* m_saveRender;
     QPushButton* m_saveConfig;
+    QPushButton* m_init;
     QPushButton* m_about;
     AboutWindow* m_aboutWindow;
     QCheckBox* m_renderMode;

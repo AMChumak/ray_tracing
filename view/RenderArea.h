@@ -26,6 +26,7 @@ public:
     void saveRender(const QString& fileName) const;
     void saveConfig(const QString& fileName);
     void setConfig(const ConfigState &config);
+    void loadScene(SceneDescription &scene_, const ConfigState &config_, const bool &isConfigLoaded);
 
 signals:
     void requestUpdate();
@@ -36,6 +37,7 @@ public slots:
     void onBackgroundColorChanged(const QColor &color);
     void onGammaChanged(const double &gamma);
     void onTracingDepthChanged(const int &depth);
+    void initCameraPosition();
 
 protected slots:
     void paintEvent(QPaintEvent* event) override;
@@ -51,6 +53,7 @@ private:
     void rtRenderStart();
     void renderWireframes();
     void renderRayTracing();
+    void initCameraWithoutConfig();
 
 private:
     QImage* screen;
@@ -84,6 +87,8 @@ private:
     bool keyCtrlPressed{};
     bool keyShiftPressed{};
     bool renderInProcess{};
+
+    bool isConfigLoaded{true};
 };
 
 inline void RenderArea::onRequestUpdate()

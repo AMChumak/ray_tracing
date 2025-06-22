@@ -61,3 +61,8 @@ Ray Box::getNormalInReflection(Ray& incident)
     }
     return normal;
 }
+
+std::pair<Point3D, Point3D> Box::getBox()
+{
+    return std::make_pair(minP, maxP);
+}

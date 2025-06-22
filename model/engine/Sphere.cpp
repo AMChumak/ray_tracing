@@ -75,6 +75,13 @@ Ray Sphere::getNormalInReflection(Ray& incident)
     };
 }
 
+std::pair<Point3D, Point3D> Sphere::getBox()
+{
+    Point3D min = Point3D{center.x() - radius, center.y() - radius, center.z() - radius};
+    Point3D max = Point3D{center.x() + radius, center.y() + radius, center.z() + radius};
+    return std::make_pair(min, max);
+}
+
 
 std::vector<Polygon> Sphere::polygons()
 {

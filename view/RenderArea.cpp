@@ -10,6 +10,10 @@
 #include <QFile>
 #include <QPainter>
 
+#ifndef M_SQRT3
+#define M_SQRT3 1.732050807568877
+#endif
+
 RenderArea::RenderArea(QWidget* parent, Camera* camera_, SceneDescription* scene_,
                        ConfigState* config_): camera(camera_), scene(scene_), config(config_)
 {
@@ -36,12 +40,12 @@ void RenderArea::saveConfig(const QString& fileName)
     ConfigKeeper keeper;
     {
         std::lock_guard guard(cameraM);
-        config->eye = camera->getPosition();
-        config->view = camera->getViewPoint();
-        config->up = camera->getUpVector();
-        config->zf = camera->getZf();
-        config->zb = camera->getZb();
         keeper.state = *config;
+        keeper.state.eye = camera->getPosition();
+        keeper.state.view = camera->getViewPoint();
+        keeper.state.up = camera->getUpVector();
+        keeper.state.zf = camera->getZf();
+        keeper.state.zb = camera->getZb();
     }
     keeper.writeConfig(fileName.toStdString());
 }
@@ -54,9 +58,41 @@ void RenderArea::setConfig(const ConfigState& config)
         config.eye, config.view, config.up, config.zf,
         config.zb, config.sw, config.sh
     };
+    isConfigLoaded = true;
 }
 
-void RenderArea::onChangeRenderMode(const bool &mode)
+void RenderArea::loadScene(SceneDescription &scene_, const ConfigState &config_, const bool &isConfigLoaded)
+{
+    {
+        std::lock_guard guard(cameraM);
+        scene->figures = scene_.figures;
+        scene->optics = scene_.optics;
+        scene->props.lights  = scene_.props.lights;
+        scene->props.ab = scene_.props.ab;
+        scene->props.ag = scene_.props.ag;
+        scene->props.ar = scene_.props.ar;
+        *config = config_;
+        this->isConfigLoaded = isConfigLoaded;
+    }
+    initCameraPosition();
+}
+
+void RenderArea::initCameraPosition()
+{
+    if (isConfigLoaded)
+    {
+        std::lock_guard guard(cameraM);
+        *camera = Camera{
+            config->eye, config->view, config->up, config->zf,
+            config->zb, config->sw, config->sh
+        };
+        return;
+    }
+    //if there is no config file, use standard configuration
+    initCameraWithoutConfig();
+}
+
+void RenderArea::onChangeRenderMode(const bool& mode)
 {
     if (mode && !isRenderShowing)
     {
@@ -312,4 +348,24 @@ void RenderArea::renderRayTracing()
     filledRenderStrategy.render(*render, *scene, *config, *camera);
     renderInProcess = false;
     isRenderShowing = true;
+}
+
+void RenderArea::initCameraWithoutConfig()
+{
+    auto box = getBox(scene->figures);
+    Point3D viewPoint = box.first + box.second;
+    viewPoint /= 2;
+
+    Point3D upVector = Point3D{0, 0, 1};
+    Point3D origin = Point3D{box.first.x - (viewPoint.z - box.first.z) / M_SQRT3, viewPoint.y, viewPoint.z};
+
+    double zf = (box.first.x - origin.x) / 2;
+    double zb = (box.second.x - origin.x) + (box.second.x - box.first.x) / 2;
+    double sh = M_SQRT3 * zf * 2.0;
+    double sw = sh / screen->height() * screen->width();
+
+    {
+        std::lock_guard cguard(cameraM);
+        *camera = Camera{origin, viewPoint, upVector, zf, zb, sw, sh};
+    }
 }
