@@ -141,7 +141,10 @@ void RenderArea::paintEvent(QPaintEvent* event)
 
         if (progress)
         {
-            painter.setPen(Qt::black);
+            if (config->bb > 128 || config->bg > 128 || config->br > 128)
+                painter.setPen(Qt::black);
+            else
+                painter.setPen(Qt::white);
             auto progressMsg = QString("rendering...");
             painter.setFont(QFont("Arial", 20));
             painter.drawText(QPointF(84, 50), progressMsg);
